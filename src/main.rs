@@ -3,21 +3,24 @@ use totp_rs::{Algorithm, TOTP, Secret};
 
 fn main() {
 
+    // TODO consider stack instead of heap? secret gets heaped upon encoding.
+    // accept input of hmac secret
     let mut secret_input = String::new();
     match io::stdin().read_line(&mut secret_input) {
         Ok(n) => {
             println!("Secret of {n} bytes input:");
             println!("{secret_input}");
-            println!();
         }
         Err(error) => {
             println!("Error: {error}");
             println!();
         }
     }
-    // stdin adds a line feed that we need to remove before creating a secret
-    secret_input.pop();
 
+    // sanitize hmac secret
+    secret_input = secret_input.to_uppercase().chars().filter(|c| c.is_alphanumeric()).collect();
+
+    // encode as secret
     let secret = Secret::Encoded(secret_input);
 
 
@@ -28,7 +31,9 @@ fn main() {
         30,
         secret.to_bytes().unwrap()
     ).unwrap();
+
+    // generate the current OTP
     let token = totp.generate_current().unwrap();
-    println!("{}", token);
+    println!("Current OTP: {}", token);
 
 }
